@@ -1,128 +1,149 @@
 # Mediador de retroalimentación entre pares — prototipo
 
-Un estudiante (*retroalimentador*) escribe un comentario sobre el trabajo de un compañero. Antes de que llegue al destinatario, una IA lo evalúa con cinco criterios (especificidad, tono, accionabilidad, equilibrio, alineación) y le hace preguntas y sugerencias para mejorarlo. El estudiante lo refina en rondas sucesivas y lo envía cuando quiere. **La IA no reescribe el comentario**: el texto sigue siendo del estudiante. Cada ronda queda registrada en un Excel para el profesor.
+Un estudiante (*retroalimentador*) escribe un comentario sobre el trabajo de un compañero. Antes de que llegue al destinatario, una IA lo evalúa con cinco criterios (especificidad, tono, accionabilidad, equilibrio, alineación) y le hace preguntas y sugerencias para mejorarlo. El estudiante lo refina en rondas sucesivas y lo envía cuando quiere. **La IA no reescribe el comentario**: el texto sigue siendo del estudiante. Cada ronda queda registrada para el profesor.
 
-Es la versión en repositorio del notebook de Colab original (`notebooks/mediador_retroalimentacion_pares.ipynb`).
+Es la versión en repositorio del notebook de Colab original (`notebooks/mediador_retroalimentacion_pares.ipynb`). Hay dos formas de usarlo:
 
-## Inicio rápido
+| | **GitHub Pages** (`docs/`) | **Servidor Python** (`mediador/`) |
+|---|---|---|
+| Acceso | `https://rilianx.github.io/Evaluador/`: sin instalar nada | Hay que dejar corriendo un servidor |
+| IA | El navegador llama directo a OpenAI con la key ingresada en la página | El servidor llama a OpenAI (LangGraph) |
+| Prompt editado | Se guarda en ese navegador; para todos, se sube al repo | Se guarda en el servidor para todos |
+| Registro | En cada navegador (CSV) + opcional Google Sheet central | Excel central en el servidor |
+| Extras | — | Bot de Telegram, entrega por correo |
+
+---
+
+## Opción A: GitHub Pages (recomendada para el piloto)
+
+### Publicarla (una sola vez)
+1. En GitHub: **Settings → Pages**.
+2. *Build and deployment* → Source: **Deploy from a branch**.
+3. Branch: la rama con este código (hoy `ccr-6246fe3b-pt52jl`, o `main` si la fusionas) y carpeta **`/docs`** → *Save*.
+4. En uno o dos minutos queda en **https://rilianx.github.io/Evaluador/**. Cada `push` a esa rama la actualiza.
+
+GitHub Pages es gratis en repositorios públicos. **Todo lo que está en el repo es visible para cualquiera**, así que no subas datos de estudiantes ni la API key.
+
+### La API key
+Haz clic en el indicador de arriba a la derecha (⚙️ *Modo simulado · 🔑 configurar*) y pega la key. Queda guardada **solo en ese navegador** (localStorage) y se envía directo a `api.openai.com`; no pasa por GitHub.
+
+Para que los estudiantes no tengan que pegarla, el mismo diálogo tiene **«Copiar enlace con key»**, que genera `https://rilianx.github.io/Evaluador/#key=sk-…`. Al abrirlo, la key se guarda y desaparece de la barra de direcciones. Lo que va después de `#` nunca se envía a GitHub.
+
+> ⚠️ En una página estática **no hay forma de ocultar la key a quien la usa**: cualquier estudiante con el enlace puede extraerla.
+> - Crea una key **de proyecto** solo para el piloto, con **límite de gasto** (platform.openai.com → Projects → Limits).
+> - Comparte el enlace por un canal privado (aula virtual o correo), no en un lugar público.
+> - **Revócala** al terminar el piloto.
+> - **Nunca** la escribas en `docs/config.js` ni en otro archivo del repo: GitHub la detecta, OpenAI la revoca automáticamente y cualquiera podría usarla.
+>
+> Si eso no es aceptable, usa la opción B: allí la key queda en el servidor y los estudiantes nunca la ven.
+
+### Registro central (opcional, Google Sheets)
+Por defecto cada estudiante ve su registro solo en su navegador (pestaña *Registro*, con descarga en CSV que Excel abre bien). Para reunir el de todos:
+1. Crea una Google Sheet → *Extensiones → Apps Script* → pega `docs/registro_google_sheets.gs`.
+2. *Implementar → Nueva implementación → Aplicación web*: ejecutar como **tú**, acceso **cualquier usuario**.
+3. Copia la URL `…/exec` en `docs/config.js` → `registro_url` y haz push.
+
+Cada borrador evaluado agrega una fila a la hoja, y las acciones posteriores (REESCRIBIR / ENVIAR / INTENTO_ENVIO_BLOQUEADO) actualizan esa misma fila.
+
+### Cambiar el prompt, la tarea o el modelo para todos
+- **Prompt**: en la pestaña *Prompt del mediador*, edítalo y pruébalo; *Guardar* lo usa solo en tu navegador. Cuando te guste, *Descargar .md* y súbelo como `docs/prompts/prompt_mediador.md` (en GitHub: abrir el archivo → ✏️ → pegar → *Commit*).
+- **Tarea**: reemplaza `docs/datos/rubrica.md` y `docs/datos/trabajo_ejemplo.md`, y ajusta `autor_trabajo` en `docs/config.js`.
+- **Modelo / rondas**: en `docs/config.js` (cada usuario puede cambiarlos en ⚙️ solo para su navegador).
+
+### Probarla localmente
+```bash
+python -m http.server -d docs 8000      # y abre http://localhost:8000
+```
+(Abrir `index.html` con doble clic no funciona: el navegador no deja cargar los `.md` desde `file://`.)
+
+---
+
+## Opción B: servidor Python
 
 ```bash
 pip install -r requirements.txt
-uvicorn mediador.web:app --reload
+uvicorn mediador.web:app --reload        # http://127.0.0.1:8000
 ```
+La API key se pega en la página (indicador de arriba a la derecha) y queda en el servidor (`salida/openai_api_key.txt`, fuera de git); la usan todos y nadie la ve completa. También puede ir en `.env` como `OPENAI_API_KEY`, y en ese caso tiene prioridad.
 
-Abre <http://127.0.0.1:8000> y haz clic en el indicador de modo (arriba a la derecha) para pegar la **API key de OpenAI**. Se guarda en el servidor (`salida/openai_api_key.txt`, fuera de git) y la usan todos los estudiantes; la página nunca la muestra completa. También puedes definirla como `OPENAI_API_KEY` en `.env` (ver `.env.example`); en ese caso tiene prioridad.
+**Antes de abrirla a otros** define `MEDIADOR_CLAVE_ADMIN=algo-secreto`: protege la key, la edición/prueba del prompt y el registro.
 
-## Acceso web
+Cómo exponerla:
+- **Misma red**: `uvicorn mediador.web:app --host 0.0.0.0 --port 8000` → `http://<tu-IP>:8000`.
+- **Enlace público temporal**: `cloudflared tunnel --url http://localhost:8000` (o `ngrok http 8000`).
+- **Colab**:
+  ```python
+  !git clone -b ccr-6246fe3b-pt52jl https://github.com/rilianx/Evaluador && cd Evaluador && pip install -q -r requirements.txt
+  !wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared && chmod +x cloudflared
+  import os, subprocess; os.chdir("Evaluador"); os.environ["MEDIADOR_CLAVE_ADMIN"] = "algo-secreto"
+  subprocess.Popen(["uvicorn", "mediador.web:app", "--port", "8000"])
+  !./cloudflared tunnel --url http://localhost:8000
+  ```
+- **Servidor permanente** (Render, Railway, VM): hay un `Dockerfile`. Monta un disco persistente en `/app/salida`.
 
-> **Antes de abrirla a otros**, define una contraseña de profesor:
-> `export MEDIADOR_CLAVE_ADMIN=algo-secreto` (o en `.env`). Con ella se protegen la API key,
-> la edición y prueba del prompt y el registro (que contiene los comentarios de los estudiantes).
-> Los estudiantes solo usan la pestaña *Retroalimentar* y no la necesitan.
+Otros: `python -m mediador.consola` (prueba en terminal), `python -m mediador.bot_telegram` (bot, requiere `TELEGRAM_BOT_TOKEN`), `pytest -q` (tests). Variables en `.env.example`.
 
-**1. Misma red (sala de clases, wifi de la universidad)**
-```bash
-uvicorn mediador.web:app --host 0.0.0.0 --port 8000
-```
-Los estudiantes entran a `http://<IP-de-tu-computador>:8000` (la IP sale con `ipconfig` en Windows o `ip addr` / `ifconfig` en Linux/Mac). Puede que debas permitir el puerto 8000 en el firewall. Algunas redes institucionales aíslan a los equipos entre sí; en ese caso usa la opción 2.
+---
 
-**2. Enlace público temporal desde tu computador (sin servidor)**
-Con el servidor corriendo, en otra terminal:
-```bash
-cloudflared tunnel --url http://localhost:8000     # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-# o bien:  ngrok http 8000
-```
-Te entrega una URL `https://….trycloudflare.com` para compartir. Funciona mientras tu computador y el comando sigan encendidos; la URL cambia cada vez.
-
-**3. Desde Google Colab** (como el notebook original)
-```python
-!git clone -b ccr-6246fe3b-pt52jl https://github.com/rilianx/Evaluador && cd Evaluador && pip install -q -r requirements.txt
-!wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared && chmod +x cloudflared
-import os, subprocess; os.chdir("Evaluador"); os.environ["MEDIADOR_CLAVE_ADMIN"] = "algo-secreto"
-subprocess.Popen(["uvicorn", "mediador.web:app", "--port", "8000"])
-!./cloudflared tunnel --url http://localhost:8000      # busca la URL https://….trycloudflare.com en la salida
-```
-Los archivos de `salida/` se pierden al cerrar la sesión de Colab: descarga el Excel desde la pestaña *Registro*.
-
-**4. Servidor permanente (Render, Railway, Fly.io, una VM…)**
-El repositorio incluye un `Dockerfile`:
-```bash
-docker build -t mediador .
-docker run -p 8000:8000 -e MEDIADOR_CLAVE_ADMIN=algo-secreto -v $(pwd)/salida:/app/salida mediador
-```
-En Render/Railway: crea un servicio web desde el repositorio (detecta el Dockerfile), define `MEDIADOR_CLAVE_ADMIN` (y opcionalmente `OPENAI_API_KEY`) en las variables de entorno y agrega un **disco persistente montado en `/app/salida`**; sin él, el registro y la key se borran en cada redespliegue. La plataforma entrega la URL https.
-
-### Modo simulado
-Si no hay API key (ni en la página ni en `OPENAI_API_KEY`) (o con `MEDIADOR_MODO=simulado`) el mediador usa reglas heurísticas locales en lugar del modelo. Sirve para probar la interfaz y el flujo sin gastar API; **las evaluaciones no son reales** y el prompt no se usa. La interfaz lo indica arriba a la derecha.
+## Modo simulado
+Sin API key, ambas versiones usan reglas heurísticas locales en lugar del modelo. Sirve para probar la interfaz y el flujo sin gastar; **las evaluaciones no son reales** y el prompt no se usa. La interfaz lo indica arriba a la derecha.
 
 ## La interfaz
 
 | Pestaña | Para qué |
 |---|---|
 | **Retroalimentar** | A la izquierda, el trabajo del compañero y la rúbrica. A la derecha escribes tu comentario, pulsas *Revisar con la IA*, ves los puntajes y preguntas, editas el mismo texto y vuelves a revisar. Cada ronda muestra qué cambiaste respecto a la anterior. *Enviar* solo se habilita si la última versión fue revisada y no está bloqueada. |
-| **Prompt del mediador** | Ver y editar `prompts/prompt_mediador.md`. Puedes **probar** un borrador con el prompt del editor antes de guardarlo y ver el **prompt completo** que recibe el modelo. Los cambios guardados aplican desde la siguiente evaluación, sin reiniciar. *Restaurar original* vuelve a `prompt_mediador.original.md`. |
-| **Registro** | Tabla de todas las rondas (bloqueos en rojo, versión enviada en verde) y descarga del Excel. |
+| **Prompt del mediador** | Ver y editar el prompt, **probar** un borrador con el texto del editor antes de guardarlo y ver el **prompt completo** que recibe el modelo. |
+| **Registro** | Todas las rondas (bloqueos en rojo, versión enviada en verde) y descarga. |
 
-## Reglas del flujo (grafo LangGraph)
+## Reglas del flujo
 
 ```
-evaluar → esperar (interrupt) → decidir ─┬─ REESCRIBIR → evaluar
-                                         ├─ ENVIAR + bloqueado → rechazar → esperar
-                                         └─ ENVIAR → entregar → FIN
+evaluar → esperar → decidir ─┬─ REESCRIBIR → evaluar
+                             ├─ ENVIAR + bloqueado → rechazar → esperar
+                             └─ ENVIAR → entregar → FIN
 ```
 
 - Toda versión nueva pasa por la IA antes de poder enviarse.
 - Si la IA marca `bloqueado` (insultos, ataques personales, contenido discriminatorio o texto que no es retroalimentación), el comentario **no puede enviarse** hasta reescribirlo. Un comentario solo seco o duro no se bloquea: baja el puntaje de Tono.
-- Tras `MEDIADOR_MAX_ITERACIONES` rondas (3 por defecto) la IA deja de pedir mejoras de fondo y solo verifica tono/bloqueo.
-- El estado de cada sesión se guarda en SQLite (`salida/checkpoints.sqlite`); si recargas la página, la sesión se retoma.
+- Tras las rondas sugeridas (3 por defecto) la IA deja de pedir mejoras de fondo y solo verifica tono/bloqueo.
+- La sesión en curso se conserva si se recarga la página.
+
+En Python esto es un grafo LangGraph (`mediador/grafo.py`); en GitHub Pages, la misma máquina de estados en JavaScript (`docs/mediador.js`).
 
 ## Estructura
 
 ```
-mediador/
-  config.py        rutas, modelo, modo (lee .env)
-  evaluador.py     modelo con salida estructurada + evaluador simulado
-  grafo.py         grafo LangGraph y API iniciar/continuar sesión
-  registro.py      Excel para el profesor
-  contenido.py     prompt (validar/rellenar), rúbrica, trabajo, directorio
-  web.py           API FastAPI + interfaz
-  static/          index.html, app.js, estilo.css, marked.min.js (markdown sin CDN)
-  consola.py       prueba en terminal: python -m mediador.consola
-  bot_telegram.py  bot opcional: python -m mediador.bot_telegram
-prompts/
-  prompt_mediador.md           prompt editable
-  prompt_mediador.original.md  copia para "Restaurar original"
-datos/
-  rubrica.md          enunciado + rúbrica (Informe de laboratorio N°2, péndulo simple)
-  trabajo_ejemplo.md  informe de ejemplo a retroalimentar (autor: beto)
-  directorio.csv      estudiantes (alias, nombre, correo)
-salida/             (se crea sola, ignorada por git) Excel, SQLite, chats de Telegram
-tests/test_flujo.py pruebas del flujo en modo simulado: pytest -q
+docs/                         sitio de GitHub Pages (y datos compartidos)
+  index.html, app.js          interfaz
+  mediador.js                 motor: estados, llamada a OpenAI, evaluador simulado, registro
+  config.js                   modelo, rondas, autor, registro_url (público: ¡sin key!)
+  registro_google_sheets.gs   Apps Script para el registro central
+  prompts/prompt_mediador.md  prompt (lo usan ambas versiones)
+  datos/rubrica.md            enunciado + rúbrica (Informe de laboratorio N°2, péndulo simple)
+  datos/trabajo_ejemplo.md    informe de ejemplo a retroalimentar
+mediador/                     versión servidor (FastAPI + LangGraph + Excel + Telegram)
+datos/directorio.csv          estudiantes para el bot de Telegram (no se publica en Pages)
+tests/test_flujo.py           tests de la versión Python
 ```
 
 ## Trabajo de ejemplo
 
-`datos/trabajo_ejemplo.md` es un informe de laboratorio con aciertos y problemas deliberados, para que haya cosas concretas que comentar:
+`docs/datos/trabajo_ejemplo.md` es un informe de laboratorio con aciertos y problemas deliberados, para que haya cosas concretas que comentar:
 
 - **Hipótesis**: correcta pero vaga; no explicita supuestos (ángulos pequeños).
 - **Procedimiento**: no dice número de repeticiones, ángulo inicial ni precisión de instrumentos.
 - **Análisis**: tabla sin incertidumbres; grafica T vs L (curva) en vez de linealizar; calcula *g* con un solo punto.
 - **Conclusiones**: generaliza de más ("para cualquier péndulo", "muy preciso").
 
-Para usar otra tarea, reemplaza `datos/rubrica.md` y `datos/trabajo_ejemplo.md` (o apunta `MEDIADOR_RUBRICA` / `MEDIADOR_TRABAJO` a otros archivos) y ajusta `MEDIADOR_AUTOR_TRABAJO`.
-
 ## Prompt
 
-Marcadores que se rellenan en cada ronda: `{tarea}` (rúbrica), `{trabajo}`, `{borrador}` (obligatorio), `{iteracion}`, `{max_iteraciones}`, `{supera_rondas_sugeridas}`. Cualquier otra llave se deja tal cual, así que puedes escribir JSON o ejemplos con `{}` sin romper nada.
+Marcadores que se rellenan en cada ronda: `{tarea}` (rúbrica), `{trabajo}`, `{borrador}` (obligatorio), `{iteracion}`, `{max_iteraciones}`, `{supera_rondas_sugeridas}`. Cualquier otra llave se deja tal cual.
 
-Respecto del notebook, el prompt ahora incluye el **texto del trabajo** (`{trabajo}`), para que la IA pueda comprobar si el comentario se refiere a partes reales del informe y avisar cuando afirma algo que no es cierto.
-
-## Variables de entorno
-
-Ver `.env.example`. Principales: `OPENAI_API_KEY` (o ingrésala en la página), `MEDIADOR_CLAVE_ADMIN`, `MEDIADOR_MODELO` (por defecto `gpt-5.4-mini`), `MEDIADOR_MAX_ITERACIONES`, `MEDIADOR_MODO`. Para el bot: `TELEGRAM_BOT_TOKEN`, `PROFESOR_CHAT_ID`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`.
+Respecto del notebook, el prompt ahora incluye el **texto del trabajo** (`{trabajo}`), para que la IA pueda comprobar si el comentario se refiere a partes reales del informe.
 
 ## Limitaciones del prototipo
 
-- Los estudiantes no se autentican: cualquiera con el enlace puede elegir ser cualquier estudiante y usar la API key del servidor (con su costo). Las acciones de profesor sí se protegen con `MEDIADOR_CLAVE_ADMIN`. Para más que un piloto controlado haría falta login (p. ej. con la cuenta institucional).
-- En la web la "entrega" queda registrada pero no se notifica al destinatario (eso lo hace el bot de Telegram / correo).
-- Un solo proceso: las ejecuciones del grafo se serializan (SQLite).
+- Los estudiantes no se autentican: escriben su nombre.
+- En GitHub Pages la key es visible para quien tenga el enlace (ver arriba). En el servidor Python, cualquiera con el enlace puede usarla, pero no verla.
+- La "entrega" queda registrada y se muestra al estudiante, pero no se notifica al destinatario (solo el bot de Telegram/correo lo hace).

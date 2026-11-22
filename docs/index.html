@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mediador de retroalimentación</title>
+<link rel="stylesheet" href="estilo.css">
+<script src="marked.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<header>
+  <h1>Mediador de retroalimentación entre pares</h1>
+  <nav>
+    <button class="tab activo" data-tab="retro">Retroalimentar</button>
+    <button class="tab" data-tab="prompt">Prompt del mediador</button>
+    <button class="tab" data-tab="registro">Registro</button>
+  </nav>
+  <button id="modo" class="chip" title="Configurar API key y modelo"></button>
+</header>
+
+<!-- ================= RETROALIMENTAR ================= -->
+<main id="tab-retro" class="panel activo">
+  <section class="col col-trabajo">
+    <div class="subtabs">
+      <button class="subtab activo" data-sub="trabajo">Trabajo del compañero</button>
+      <button class="subtab" data-sub="rubrica">Enunciado y rúbrica</button>
+    </div>
+    <article id="trabajo" class="md sub activo"></article>
+    <article id="rubrica" class="md sub"></article>
+  </section>
+
+  <section class="col col-retro">
+    <div class="fila-controles">
+      <label style="flex:1">Tu nombre
+        <input id="in-nombre" type="text" placeholder="Nombre y apellido">
+      </label>
+      <label>Retroalimentas a
+        <input id="in-destino" type="text" disabled>
+      </label>
+      <button id="btn-nueva" class="sec" title="Empezar otra retroalimentación">Nueva</button>
+    </div>
+
+    <div id="historial"></div>
+
+    <div id="editor-box" class="tarjeta">
+      <div class="editor-cab">
+        <strong id="editor-titulo">Tu comentario</strong>
+        <span id="ronda" class="muted"></span>
+      </div>
+      <textarea id="borrador" rows="9" placeholder="Escribe aquí tu retroalimentación para tu compañero. Refiérete a partes concretas del informe y a los criterios de la rúbrica."></textarea>
+      <div class="acciones">
+        <span id="contador" class="muted"></span>
+        <button id="btn-enviar" class="sec" disabled title="Enviar la última versión revisada">Enviar al compañero</button>
+        <button id="btn-revisar">Revisar con la IA</button>
+      </div>
+      <p id="aviso" class="aviso" hidden></p>
+    </div>
+
+    <div id="entregado" class="tarjeta exito" hidden></div>
+  </section>
+</main>
+
+<!-- ================= PROMPT ================= -->
+<main id="tab-prompt" class="panel">
+  <section class="col col-prompt">
+    <div class="editor-cab">
+      <strong>Prompt del mediador</strong>
+      <span id="prompt-estado" class="muted"></span>
+    </div>
+    <p class="muted small">Marcadores (se rellenan en cada ronda): <span id="marcadores"></span>.
+      Lo que guardes aquí se usa <b>solo en este navegador</b>. Para que lo usen todos, descárgalo y
+      reemplaza <code>docs/prompts/prompt_mediador.md</code> en el repositorio.</p>
+    <textarea id="prompt-texto" class="mono" spellcheck="false"></textarea>
+    <ul id="prompt-problemas" class="problemas"></ul>
+    <div class="acciones">
+      <button id="btn-prompt-restaurar" class="sec" title="Volver al prompt publicado en el repositorio">Usar el del repositorio</button>
+      <button id="btn-prompt-descargar" class="sec">Descargar .md</button>
+      <button id="btn-prompt-descartar" class="sec">Descartar cambios</button>
+      <button id="btn-prompt-guardar">Guardar en este navegador</button>
+    </div>
+  </section>
+  <section class="col col-prueba">
+    <strong>Probar el prompt del editor</strong>
+    <p class="muted small">Evalúa un borrador con el texto del editor (aunque no esté guardado). No queda en el registro.</p>
+    <textarea id="prueba-borrador" rows="7">Tu informe está bien pero le falta más análisis. Deberías mejorar las conclusiones.</textarea>
+    <div class="acciones">
+      <label class="small">Ronda <input id="prueba-ronda" type="number" min="1" value="1" style="width:4em"></label>
+      <button id="btn-vista" class="sec">Ver prompt completo</button>
+      <button id="btn-probar">Probar</button>
+    </div>
+    <div id="prueba-resultado"></div>
+    <pre id="prueba-vista" class="mono vista" hidden></pre>
+  </section>
+</main>
+
+<!-- ================= REGISTRO ================= -->
+<main id="tab-registro" class="panel">
+  <section class="col col-ancha">
+    <div class="acciones izq">
+      <strong>Iteraciones registradas en este navegador</strong>
+      <button id="btn-reg-descargar" class="sec">Descargar CSV (Excel)</button>
+      <button id="btn-reg-borrar" class="sec">Borrar registro local</button>
+    </div>
+    <p id="reg-central" class="muted small"></p>
+    <div class="tabla-wrap"><table id="tabla-registro"></table></div>
+  </section>
+</main>
+
+<dialog id="dlg-config">
+  <form method="dialog" class="dlg">
+    <strong>Configuración</strong>
+    <label>API key de OpenAI
+      <input id="cfg-key" type="password" autocomplete="off" placeholder="sk-..." spellcheck="false">
+    </label>
+    <p class="nota">La key se guarda solo en este navegador y se envía directo a OpenAI; no pasa por GitHub.
+      Aun así, quien use este computador podría verla: usa una key de proyecto con <b>límite de gasto</b> y revócala al terminar el piloto.
+      Sin key, el mediador funciona en <b>modo simulado</b> (reglas simples, sin IA).</p>
+    <div class="fila2">
+      <label>Modelo <input id="cfg-modelo" type="text"></label>
+      <label>Rondas sugeridas <input id="cfg-rondas" type="number" min="1"></label>
+    </div>
+    <div class="acciones">
+      <button type="button" id="btn-cfg-enlace" class="sec" title="Copia un enlace que configura la key al abrirlo">Copiar enlace con key</button>
+      <button type="button" id="btn-cfg-quitar" class="sec">Quitar key</button>
+      <button type="submit" class="sec">Cerrar</button>
+      <button type="button" id="btn-cfg-guardar">Guardar</button>
+    </div>
+    <p id="cfg-msg" class="muted small"></p>
+  </form>
+</dialog>
+
+<template id="tpl-eval">
+  <div class="tarjeta eval">
+    <div class="eval-cab"><strong class="eval-titulo"></strong><span class="eval-global muted"></span></div>
+    <div class="barras"></div>
+    <p class="eval-msg"></p>
+    <ul class="eval-sug"></ul>
+    <p class="eval-fort muted small"></p>
+  </div>
+</template>
+
+<script src="mediador.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

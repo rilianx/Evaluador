@@ -25,15 +25,17 @@ MODELO = os.environ.get("MEDIADOR_MODELO", "gpt-5.4-mini")
 MAX_ITERACIONES = int(os.environ.get("MEDIADOR_MAX_ITERACIONES", "3"))
 
 
-DIR_PROMPTS = RAIZ / "prompts"
+# Prompt, rúbrica y trabajo viven en docs/ porque también los usa la versión de GitHub Pages.
+DIR_PROMPTS = RAIZ / "docs" / "prompts"
+DIR_DOCS_DATOS = RAIZ / "docs" / "datos"
 DIR_DATOS = RAIZ / "datos"
 DIR_SALIDA = Path(os.environ.get("MEDIADOR_SALIDA", RAIZ / "salida"))
 DIR_SALIDA.mkdir(parents=True, exist_ok=True)
 
 ARCHIVO_PROMPT = DIR_PROMPTS / "prompt_mediador.md"
 ARCHIVO_PROMPT_ORIGINAL = DIR_PROMPTS / "prompt_mediador.original.md"
-ARCHIVO_RUBRICA = Path(os.environ.get("MEDIADOR_RUBRICA", DIR_DATOS / "rubrica.md"))
-ARCHIVO_TRABAJO = Path(os.environ.get("MEDIADOR_TRABAJO", DIR_DATOS / "trabajo_ejemplo.md"))
+ARCHIVO_RUBRICA = Path(os.environ.get("MEDIADOR_RUBRICA", DIR_DOCS_DATOS / "rubrica.md"))
+ARCHIVO_TRABAJO = Path(os.environ.get("MEDIADOR_TRABAJO", DIR_DOCS_DATOS / "trabajo_ejemplo.md"))
 ARCHIVO_DIRECTORIO = DIR_DATOS / "directorio.csv"
 AUTOR_TRABAJO = os.environ.get("MEDIADOR_AUTOR_TRABAJO", "beto")  # alias del autor del trabajo de ejemplo
 
