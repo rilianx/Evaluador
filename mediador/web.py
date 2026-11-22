@@ -48,6 +48,7 @@ def info():
         "modo": config.modo(), "modelo": config.MODELO, "protegido": bool(config.CLAVE_ADMIN), "max_iteraciones": config.MAX_ITERACIONES,
         "estudiantes": [{"alias": a, "nombre": r["nombre"]} for a, r in directorio.items()],
         "rubrica": contenido.leer_rubrica(), "trabajo": contenido.leer_trabajo(),
+        "ejemplos": contenido.leer_ejemplos(),
         "autor_trabajo": config.AUTOR_TRABAJO,
     }
 

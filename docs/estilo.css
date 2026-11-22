@@ -1,3 +1,4 @@
+[hidden] { display: none !important; }
 :root {
   --bg: #f6f7f9; --panel: #ffffff; --texto: #1d2330; --muted: #667085; --borde: #dfe3ea;
   --acento: #2f5496; --acento-t: #ffffff; --ok: #1f7a4d; --ok-bg: #e8f5ee;
@@ -89,3 +90,12 @@ input[type=text], input[type=password], input[type=url] { width: 100%; }
 .dlg label { gap: 4px; }
 .dlg .fila2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .nota { font-size: 13px; padding: 8px 10px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); }
+
+.ejemplo-fila { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ejemplo-fila select { max-width: 100%; }
+.tabla-ejemplos { border-collapse: collapse; font-size: 13px; width: 100%; margin-top: 10px; }
+.tabla-ejemplos th, .tabla-ejemplos td { border-bottom: 1px solid var(--borde); padding: 5px 6px; text-align: left; vertical-align: top; }
+.tabla-ejemplos td.n { text-align: center; font-variant-numeric: tabular-nums; }
+.tabla-ejemplos td.b2 { color: var(--warn); font-weight: 600; }
+.tabla-ejemplos tr.bloq td { background: var(--mal-bg); }
+.tabla-ejemplos tr { cursor: pointer; }

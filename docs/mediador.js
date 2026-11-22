@@ -26,7 +26,7 @@ const Mediador = (() => {
   };
 
   // ---------- textos (se cargan del sitio) ----------
-  const textos = { trabajo: "", rubrica: "", promptRepo: "" };
+  const textos = { trabajo: "", rubrica: "", promptRepo: "", ejemplos: [] };
   async function cargarTextos() {
     const leer = async (ruta) => {
       const r = await fetch(ruta + "?v=" + Date.now());
@@ -38,6 +38,9 @@ const Mediador = (() => {
       leer(CFG.archivo_rubrica || "datos/rubrica.md"),
       leer(CFG.archivo_prompt || "prompts/prompt_mediador.md"),
     ]);
+    // Ejemplos de retroalimentación para probar (opcional: si falta el archivo, no hay selector).
+    try { textos.ejemplos = JSON.parse(await leer(CFG.archivo_ejemplos || "datos/ejemplos_retroalimentacion.json")); }
+    catch (_) { textos.ejemplos = []; }
   }
   const promptActual = () => local.get("prompt_personalizado", null) ?? textos.promptRepo;
 

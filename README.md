@@ -93,7 +93,7 @@ Sin API key, ambas versiones usan reglas heurísticas locales en lugar del model
 | Pestaña | Para qué |
 |---|---|
 | **Retroalimentar** | A la izquierda, el trabajo del compañero y la rúbrica. A la derecha escribes tu comentario, pulsas *Revisar con la IA*, ves los puntajes y preguntas, editas el mismo texto y vuelves a revisar. Cada ronda muestra qué cambiaste respecto a la anterior. *Enviar* solo se habilita si la última versión fue revisada y no está bloqueada. |
-| **Prompt del mediador** | Ver y editar el prompt, **probar** un borrador con el texto del editor antes de guardarlo y ver el **prompt completo** que recibe el modelo. |
+| **Prompt del mediador** | Ver y editar el prompt, **probar** un borrador con el texto del editor antes de guardarlo y ver el **prompt completo** que recibe el modelo. **«Probar todos los ejemplos»** evalúa todos los borradores de ejemplo y los muestra en una tabla junto a lo esperado: sirve para ver si un cambio al prompt mejora o empeora algún caso. |
 | **Registro** | Todas las rondas (bloqueos en rojo, versión enviada en verde) y descarga. |
 
 ## Reglas del flujo
@@ -122,6 +122,7 @@ docs/                         sitio de GitHub Pages (y datos compartidos)
   prompts/prompt_mediador.md  prompt (lo usan ambas versiones)
   datos/rubrica.md            enunciado + rúbrica (Informe de laboratorio N°2, péndulo simple)
   datos/trabajo_ejemplo.md    informe de ejemplo a retroalimentar
+  datos/ejemplos_retroalimentacion.json  borradores de ejemplo para probar
 mediador/                     versión servidor (FastAPI + LangGraph + Excel + Telegram)
 datos/directorio.csv          estudiantes para el bot de Telegram (no se publica en Pages)
 tests/test_flujo.py           tests de la versión Python
@@ -135,6 +136,12 @@ tests/test_flujo.py           tests de la versión Python
 - **Procedimiento**: no dice número de repeticiones, ángulo inicial ni precisión de instrumentos.
 - **Análisis**: tabla sin incertidumbres; grafica T vs L (curva) en vez de linealizar; calcula *g* con un solo punto.
 - **Conclusiones**: generaliza de más ("para cualquier péndulo", "muy preciso").
+
+## Ejemplos de retroalimentación para probar
+
+En *Retroalimentar* y en *Probar el prompt* hay un selector **«📋 Cargar un ejemplo…»** que pone en el cuadro un borrador típico y muestra qué debería responder el mediador. Incluye: genérico, solo elogios, duro pero válido (no debe bloquearse), ofensivo (debe bloquearse), con una afirmación falsa sobre el trabajo, desalineado con la rúbrica, mejorable, bien logrado y uno que no es retroalimentación.
+
+Están en `docs/datos/ejemplos_retroalimentacion.json`: puedes editarlos o agregar más con la forma `{"titulo", "esperado", "texto"}`. Los usan ambas versiones. En modo simulado los resultados no coinciden con lo esperado; la comparación tiene sentido con el modelo real.
 
 ## Prompt
 

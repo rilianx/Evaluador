@@ -7,6 +7,7 @@ window.MEDIADOR_CONFIG = {
   archivo_trabajo: "datos/trabajo_ejemplo.md",
   archivo_rubrica: "datos/rubrica.md",
   archivo_prompt: "prompts/prompt_mediador.md",
+  archivo_ejemplos: "datos/ejemplos_retroalimentacion.json",   // borradores de ejemplo para probar
   // URL de una aplicación web de Google Apps Script que recibe el registro de todos los
   // estudiantes en una Google Sheet (ver docs/registro_google_sheets.gs). Vacío = solo registro local.
   registro_url: "",

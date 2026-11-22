@@ -1,5 +1,6 @@
 """Lectura/escritura de los textos editables: prompt, rúbrica, trabajo y directorio."""
 import csv
+import json
 import re
 
 from . import config
@@ -51,6 +52,14 @@ def leer_rubrica() -> str:
 
 def leer_trabajo() -> str:
     return leer(config.ARCHIVO_TRABAJO)
+
+
+def leer_ejemplos() -> list[dict]:
+    """Borradores de ejemplo para probar (docs/datos/ejemplos_retroalimentacion.json)."""
+    try:
+        return json.loads(leer(config.ARCHIVO_EJEMPLOS) or "[]")
+    except json.JSONDecodeError:
+        return []
 
 
 def cargar_directorio() -> dict[str, dict]:

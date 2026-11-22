@@ -261,6 +261,72 @@ $("#btn-vista").onclick = async () => {
   v.textContent = r.prompt; v.hidden = false;
 };
 
+// ---------------- ejemplos de retroalimentación ----------------
+let EJEMPLOS = [];
+function configurarEjemplos(lista) {
+  EJEMPLOS = lista || [];
+  document.querySelectorAll(".sel-ejemplo").forEach((sel) => {
+    sel.closest(".ejemplo-fila").hidden = !EJEMPLOS.length;
+    sel.innerHTML = `<option value="">📋 Cargar un ejemplo…</option>` +
+      EJEMPLOS.map((e, i) => `<option value="${i}">${esc(e.titulo)}</option>`).join("");
+    sel.onchange = () => {
+      const e = EJEMPLOS[sel.value];
+      if (!e) return;
+      const ta = $(sel.dataset.destino);
+      ta.value = e.texto;
+      ta.dispatchEvent(new Event("input"));
+      $(sel.dataset.nota).textContent = e.esperado ? `Esperado: ${e.esperado}` : "";
+      sel.value = "";
+    };
+  });
+  const btn = $("#btn-probar-todos");
+  if (btn) btn.hidden = !EJEMPLOS.length;
+}
+
+/** Evalúa todos los ejemplos (uno tras otro) y muestra una tabla comparativa con lo esperado. */
+async function probarTodosLosEjemplos(evaluarFn) {
+  const cont = $("#prueba-todos");
+  const resultados = [];
+  const corto = { especificidad: "Esp", tono: "Tono", accionabilidad: "Acc", equilibrio: "Equ", alineacion: "Ali" };
+  const pintar = (enCurso) => {
+    cont.innerHTML = `<table class="tabla-ejemplos"><thead><tr><th>Ejemplo</th>` +
+      Object.values(corto).map((c) => `<th>${c}</th>`).join("") + `<th>Prom.</th><th>Estado</th><th>Esperado</th></tr></thead><tbody>` +
+      resultados.map((r, i) => {
+        if (r.error) return `<tr><td>${esc(r.ej.titulo)}</td><td colspan="8" class="aviso">${esc(r.error)}</td></tr>`;
+        const ev = r.ev;
+        return `<tr data-i="${i}" class="${ev.bloqueado ? "bloq" : ""}" title="Clic para ver el detalle"><td>${esc(r.ej.titulo)}</td>` +
+          Object.keys(corto).map((k) => `<td class="n ${ev[k] < 3 ? "b2" : ""}">${ev[k]}</td>`).join("") +
+          `<td class="n">${ev.puntaje_global.toFixed(2)}</td>` +
+          `<td>${ev.bloqueado ? "🚫 bloqueado" : ev.listo_para_enviar ? "✅ listo" : "✏️ mejorar"}</td>` +
+          `<td class="muted">${esc(r.ej.esperado || "")}</td></tr>`;
+      }).join("") +
+      (enCurso ? `<tr><td colspan="9" class="muted">Evaluando ${resultados.length + 1} de ${EJEMPLOS.length}…</td></tr>` : "") +
+      "</tbody></table>";
+    cont.querySelectorAll("tr[data-i]").forEach((tr) => tr.onclick = () => {
+      const r = resultados[tr.dataset.i];
+      $("#prueba-borrador").value = r.ej.texto;
+      $("#nota-prueba").textContent = r.ej.esperado ? `Esperado: ${r.ej.esperado}` : "";
+      $("#prueba-resultado").innerHTML = "";
+      $("#prueba-resultado").appendChild(tarjetaEvaluacion(r.ev, `Resultado · ${r.ej.titulo}`));
+    });
+  };
+  const btn = $("#btn-probar-todos");
+  btn.disabled = true;
+  try {
+    for (const ej of EJEMPLOS) {
+      pintar(true);
+      try { resultados.push({ ej, ev: await evaluarFn(ej.texto) }); }
+      catch (e) { resultados.push({ ej, error: e.message }); }
+    }
+    pintar(false);
+  } finally { btn.disabled = false; }
+}
+$("#btn-probar-todos").onclick = () => {
+  if (INFO.modo !== "simulado" && !confirm(`Se harán ${EJEMPLOS.length} llamadas a OpenAI con el prompt del editor. ¿Continuar?`)) return;
+  probarTodosLosEjemplos((texto) => api("/api/prompt/probar", { method: "POST",
+    body: { texto: $("#prompt-texto").value, borrador: texto, iteracion: parseInt($("#prueba-ronda").value, 10) || 1 } }));
+};
+
 // ---------------- registro ----------------
 const COLS_REG = ["fecha_hora", "retroalimentador", "destino", "iteracion", "texto", "especificidad", "tono",
                   "accionabilidad", "equilibrio", "alineacion", "puntaje_global", "bloqueado", "motivo_bloqueo",
@@ -316,6 +382,7 @@ $("#btn-clave-quitar").onclick = () => accionClave(() => api("/api/clave", { met
   pintarModo(INFO.modo);
   $("#trabajo").innerHTML = md(INFO.trabajo);
   $("#rubrica").innerHTML = md(INFO.rubrica);
+  configurarEjemplos(INFO.ejemplos);
   const opts = INFO.estudiantes.map((e) => `<option value="${esc(e.alias)}">${esc(e.nombre)}</option>`).join("");
   $("#sel-retro").innerHTML = opts;
   $("#sel-destino").innerHTML = opts;

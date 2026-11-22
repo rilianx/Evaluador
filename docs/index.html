@@ -48,6 +48,10 @@
         <strong id="editor-titulo">Tu comentario</strong>
         <span id="ronda" class="muted"></span>
       </div>
+      <div class="ejemplo-fila">
+        <select class="sel-ejemplo" data-destino="#borrador" data-nota="#nota-ejemplo" aria-label="Cargar un ejemplo de retroalimentación"></select>
+        <span id="nota-ejemplo" class="muted small"></span>
+      </div>
       <textarea id="borrador" rows="9" placeholder="Escribe aquí tu retroalimentación para tu compañero. Refiérete a partes concretas del informe y a los criterios de la rúbrica."></textarea>
       <div class="acciones">
         <span id="contador" class="muted"></span>
@@ -83,12 +87,18 @@
   <section class="col col-prueba">
     <strong>Probar el prompt del editor</strong>
     <p class="muted small">Evalúa un borrador con el texto del editor (aunque no esté guardado). No queda en el registro.</p>
+    <div class="ejemplo-fila">
+      <select class="sel-ejemplo" data-destino="#prueba-borrador" data-nota="#nota-prueba" aria-label="Cargar un ejemplo de retroalimentación"></select>
+      <span id="nota-prueba" class="muted small"></span>
+    </div>
     <textarea id="prueba-borrador" rows="7">Tu informe está bien pero le falta más análisis. Deberías mejorar las conclusiones.</textarea>
     <div class="acciones">
       <label class="small">Ronda <input id="prueba-ronda" type="number" min="1" value="1" style="width:4em"></label>
       <button id="btn-vista" class="sec">Ver prompt completo</button>
+      <button id="btn-probar-todos" class="sec" title="Evalúa todos los ejemplos con el prompt del editor">Probar todos los ejemplos</button>
       <button id="btn-probar">Probar</button>
     </div>
+    <div id="prueba-todos"></div>
     <div id="prueba-resultado"></div>
     <pre id="prueba-vista" class="mono vista" hidden></pre>
   </section>

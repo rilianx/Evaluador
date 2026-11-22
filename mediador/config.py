@@ -36,6 +36,7 @@ ARCHIVO_PROMPT = DIR_PROMPTS / "prompt_mediador.md"
 ARCHIVO_PROMPT_ORIGINAL = DIR_PROMPTS / "prompt_mediador.original.md"
 ARCHIVO_RUBRICA = Path(os.environ.get("MEDIADOR_RUBRICA", DIR_DOCS_DATOS / "rubrica.md"))
 ARCHIVO_TRABAJO = Path(os.environ.get("MEDIADOR_TRABAJO", DIR_DOCS_DATOS / "trabajo_ejemplo.md"))
+ARCHIVO_EJEMPLOS = DIR_DOCS_DATOS / "ejemplos_retroalimentacion.json"
 ARCHIVO_DIRECTORIO = DIR_DATOS / "directorio.csv"
 AUTOR_TRABAJO = os.environ.get("MEDIADOR_AUTOR_TRABAJO", "beto")  # alias del autor del trabajo de ejemplo
 

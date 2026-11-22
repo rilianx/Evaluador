@@ -1,0 +1,47 @@
+[
+  {
+    "titulo": "Genérico y vago",
+    "esperado": "Puntajes bajos en especificidad y accionabilidad; preguntas para concretar.",
+    "texto": "Tu informe está bien pero le falta más análisis. Deberías mejorar las conclusiones."
+  },
+  {
+    "titulo": "Solo elogios",
+    "esperado": "Tono alto, equilibrio y accionabilidad bajos: no dice qué mejorar.",
+    "texto": "¡Excelente informe! Me encantó, está súper bien hecho y se nota que te esforzaste mucho. Felicitaciones."
+  },
+  {
+    "titulo": "Duro pero sobre el trabajo",
+    "esperado": "NO bloqueado. Tono bajo (2) con sugerencia de suavizar; contenido útil.",
+    "texto": "El análisis es pobre. Calcular g con un solo punto no tiene ningún sentido y la conclusión de que la fórmula vale para cualquier péndulo es simplemente falsa. Así no se hace un informe."
+  },
+  {
+    "titulo": "Ofensivo (debe bloquearse)",
+    "esperado": "Bloqueado: ataque a la persona. No se puede enviar.",
+    "texto": "Se nota que eres flojo, este informe es basura. Ni siquiera sabes calcular un promedio."
+  },
+  {
+    "titulo": "Afirma algo falso del trabajo",
+    "esperado": "La IA debería preguntar si revisó la sección 1: la hipótesis sí está.",
+    "texto": "Te falta escribir la hipótesis, no aparece en ninguna parte del informe. También deberías agregar una tabla con los datos medidos."
+  },
+  {
+    "titulo": "Desalineado con la rúbrica",
+    "esperado": "Alineación baja: se centra en formato y gustos, no en los criterios.",
+    "texto": "Cambiaría la fuente a Arial y pondría los títulos en azul, se vería más bonito. Además el informe es un poco corto, yo le agregaría una portada con el logo de la universidad."
+  },
+  {
+    "titulo": "Bueno pero mejorable",
+    "esperado": "Puntajes 2–3; pocas sugerencias puntuales (p. ej. concretar el cambio propuesto).",
+    "texto": "La hipótesis está bien planteada y la justificas con la fórmula. En los resultados creo que el gráfico podría ser mejor y el valor de g necesita más trabajo. En el procedimiento falta información."
+  },
+  {
+    "titulo": "Bien logrado",
+    "esperado": "Todos los criterios en 3–4; listo para enviar.",
+    "texto": "Tu hipótesis está bien justificada con T = 2π√(L/g); solo te sugiero explicitar que vale para ángulos pequeños. En el procedimiento falta indicar el ángulo inicial y cuántas veces repetiste cada medición: ¿podrías agregarlo para que sea reproducible? En la sección 3, en vez de unir los puntos de T vs L, te propongo graficar T² vs L: debería dar una recta y con la pendiente puedes estimar g usando los cinco datos, con su incertidumbre. Por último, revisaría la conclusión \"la fórmula es correcta para cualquier péndulo\": con tus datos solo puedes afirmarlo para este rango de largos."
+  },
+  {
+    "titulo": "No es retroalimentación",
+    "esperado": "Bloqueado: no se relaciona con el trabajo.",
+    "texto": "jajaja no sé qué poner, ¿alguien sabe a qué hora es la prueba de cálculo?"
+  }
+]
