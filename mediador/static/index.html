@@ -15,7 +15,7 @@
     <button class="tab" data-tab="prompt">Prompt del mediador</button>
     <button class="tab" data-tab="registro">Registro</button>
   </nav>
-  <span id="modo" class="chip"></span>
+  <button id="modo" class="chip" title="Configurar la API key de OpenAI"></button>
 </header>
 
 <!-- ================= RETROALIMENTAR ================= -->
@@ -102,6 +102,24 @@
     <div class="tabla-wrap"><table id="tabla-registro"></table></div>
   </section>
 </main>
+
+<dialog id="dlg-clave">
+  <form method="dialog" class="dlg">
+    <strong>API key de OpenAI</strong>
+    <p id="clave-estado" class="small"></p>
+    <label>Nueva API key
+      <input id="clave-input" type="password" autocomplete="off" placeholder="sk-..." spellcheck="false">
+    </label>
+    <p class="muted small">Se guarda en el servidor (<code>salida/openai_api_key.txt</code>) y la usan todos los estudiantes.
+      Nunca se muestra completa ni se envía de vuelta al navegador. Sin key, el mediador funciona en modo simulado.</p>
+    <p id="clave-error" class="aviso" hidden></p>
+    <div class="acciones">
+      <button type="button" id="btn-clave-quitar" class="sec">Quitar key</button>
+      <button type="submit" class="sec" value="cancelar">Cerrar</button>
+      <button type="button" id="btn-clave-guardar">Guardar</button>
+    </div>
+  </form>
+</dialog>
 
 <template id="tpl-eval">
   <div class="tarjeta eval">

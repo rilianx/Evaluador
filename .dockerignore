@@ -1,0 +1,6 @@
+.git
+.env
+salida
+__pycache__
+.pytest_cache
+notebooks

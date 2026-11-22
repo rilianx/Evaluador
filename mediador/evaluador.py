@@ -45,15 +45,17 @@ def construir_prompt(borrador: str, iteracion: int, max_iteraciones: int,
     )
 
 
-_evaluador_llm = None
+_cache_llm: dict[str, object] = {}
 
 
 def _llm():
-    global _evaluador_llm
-    if _evaluador_llm is None:
+    """Cliente del modelo; se recrea si la API key cambia (p. ej. desde la interfaz)."""
+    clave = config.clave_openai()[0]
+    if clave not in _cache_llm:
         from langchain_openai import ChatOpenAI
-        _evaluador_llm = ChatOpenAI(model=config.MODELO).with_structured_output(Evaluacion)
-    return _evaluador_llm
+        _cache_llm.clear()
+        _cache_llm[clave] = ChatOpenAI(model=config.MODELO, api_key=clave).with_structured_output(Evaluacion)
+    return _cache_llm[clave]
 
 
 def evaluar_borrador(borrador: str, iteracion: int, max_iteraciones: int,
@@ -61,7 +63,7 @@ def evaluar_borrador(borrador: str, iteracion: int, max_iteraciones: int,
                      plantilla: str | None = None) -> Evaluacion:
     """El prompt se lee del archivo en cada llamada: los cambios hechos en la interfaz aplican de inmediato.
     `plantilla` permite probar un prompt sin guardarlo."""
-    if config.MODO == "simulado":
+    if config.modo() == "simulado":
         return evaluar_simulado(borrador, iteracion, max_iteraciones)
     return _llm().invoke(construir_prompt(borrador, iteracion, max_iteraciones, tarea, trabajo, plantilla))
 

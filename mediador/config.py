@@ -24,8 +24,6 @@ _cargar_dotenv(RAIZ / ".env")
 MODELO = os.environ.get("MEDIADOR_MODELO", "gpt-5.4-mini")
 MAX_ITERACIONES = int(os.environ.get("MEDIADOR_MAX_ITERACIONES", "3"))
 
-# "openai" llama al modelo; "simulado" usa heurísticas locales (sin API) para probar la interfaz.
-MODO = (os.environ.get("MEDIADOR_MODO") or ("openai" if os.environ.get("OPENAI_API_KEY") else "simulado")).lower()
 
 DIR_PROMPTS = RAIZ / "prompts"
 DIR_DATOS = RAIZ / "datos"
@@ -42,6 +40,27 @@ AUTOR_TRABAJO = os.environ.get("MEDIADOR_AUTOR_TRABAJO", "beto")  # alias del au
 ARCHIVO_XLSX = DIR_SALIDA / "registro_retroalimentacion.xlsx"
 ARCHIVO_DB = DIR_SALIDA / "checkpoints.sqlite"
 ARCHIVO_CHATS = DIR_SALIDA / "chats_telegram.json"
+ARCHIVO_CLAVE = DIR_SALIDA / "openai_api_key.txt"   # key ingresada desde la interfaz (no va a git)
+
+# Contraseña del profesor: si está definida, se pide para cambiar la API key o el prompt desde la web.
+CLAVE_ADMIN = os.environ.get("MEDIADOR_CLAVE_ADMIN", "")
+
+
+def clave_openai() -> tuple[str, str]:
+    """(key, origen). La variable de entorno tiene prioridad sobre la ingresada en la interfaz."""
+    if os.environ.get("OPENAI_API_KEY"):
+        return os.environ["OPENAI_API_KEY"], "entorno"
+    if ARCHIVO_CLAVE.exists() and ARCHIVO_CLAVE.read_text().strip():
+        return ARCHIVO_CLAVE.read_text().strip(), "interfaz"
+    return "", ""
+
+
+def modo() -> str:
+    """"openai" llama al modelo; "simulado" usa heurísticas locales (sin API) para probar la interfaz."""
+    forzado = os.environ.get("MEDIADOR_MODO", "").lower()
+    if forzado:
+        return forzado
+    return "openai" if clave_openai()[0] else "simulado"
 
 # Marcadores que el prompt puede usar ({nombre}); el resto de llaves se deja tal cual.
 MARCADORES_PROMPT = ("tarea", "trabajo", "borrador", "iteracion", "max_iteraciones", "supera_rondas_sugeridas")

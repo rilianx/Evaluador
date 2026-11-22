@@ -7,10 +7,17 @@ let sesion = null;           // estado devuelto por el servidor
 let promptGuardado = "";
 
 // ---------------- utilidades ----------------
-async function api(url, opts = {}) {
-  const r = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts,
-                               body: opts.body ? JSON.stringify(opts.body) : undefined });
+async function api(url, opts = {}, reintento = true) {
+  const r = await fetch(url, { ...opts,
+    headers: { "Content-Type": "application/json", "X-Clave-Profesor": leerLocal("mediador_clave_prof") || "" },
+    body: opts.body ? JSON.stringify(opts.body) : undefined });
   const data = await r.json().catch(() => ({}));
+  if (r.status === 401 && reintento) {
+    // Acción de profesor: pedir la contraseña una vez y reintentar.
+    const c = prompt("Contraseña del profesor:");
+    if (c) { guardarLocal("mediador_clave_prof", c); return api(url, opts, false); }
+  }
+  if (r.status === 401) guardarLocal("mediador_clave_prof", null);
   if (!r.ok) throw new Error(data.detail || `Error ${r.status}`);
   return data;
 }
@@ -268,13 +275,45 @@ async function cargarRegistro() {
       "</tr>").join("") + "</tbody>";
 }
 $("#btn-reg-actualizar").onclick = cargarRegistro;
+$("#btn-reg-descargar").onclick = (e) => {
+  const c = leerLocal("mediador_clave_prof");
+  e.currentTarget.href = "/api/registro.xlsx" + (c ? `?clave_profesor=${encodeURIComponent(c)}` : "");
+};
+
+// ---------------- API key ----------------
+function pintarModo(modo) {
+  const chip = $("#modo");
+  chip.textContent = modo === "simulado" ? "Modo simulado (sin API)" : `Modelo: ${INFO.modelo}`;
+  chip.classList.toggle("simulado", modo === "simulado");
+  chip.classList.toggle("sinclave", modo === "simulado");
+}
+function pintarClave(c) {
+  const est = c.configurada
+    ? `✅ Configurada (${c.mascara})${c.origen === "entorno" ? " desde la variable de entorno OPENAI_API_KEY: tiene prioridad y no se puede cambiar aquí." : " desde esta página."}`
+    : "⚠️ No hay API key: el mediador está en modo simulado.";
+  $("#clave-estado").textContent = est;
+  $("#btn-clave-quitar").hidden = c.origen !== "interfaz";
+  $("#clave-input").disabled = $("#btn-clave-guardar").disabled = c.origen === "entorno";
+  pintarModo(c.modo);
+}
+$("#modo").onclick = async () => {
+  $("#clave-error").hidden = true;
+  $("#clave-input").value = "";
+  pintarClave(await api("/api/clave"));
+  $("#dlg-clave").showModal();
+};
+async function accionClave(fn) {
+  try { pintarClave(await fn()); $("#clave-input").value = ""; $("#clave-error").hidden = true; }
+  catch (e) { $("#clave-error").textContent = e.message; $("#clave-error").hidden = false; }
+}
+$("#btn-clave-guardar").onclick = () => accionClave(() =>
+  api("/api/clave", { method: "PUT", body: { clave: $("#clave-input").value } }));
+$("#btn-clave-quitar").onclick = () => accionClave(() => api("/api/clave", { method: "DELETE" }));
 
 // ---------------- inicio ----------------
 (async function inicio() {
   INFO = await api("/api/info");
-  const chip = $("#modo");
-  chip.textContent = INFO.modo === "simulado" ? "Modo simulado (sin API)" : `Modelo: ${INFO.modelo}`;
-  chip.classList.toggle("simulado", INFO.modo === "simulado");
+  pintarModo(INFO.modo);
   $("#trabajo").innerHTML = md(INFO.trabajo);
   $("#rubrica").innerHTML = md(INFO.rubrica);
   const opts = INFO.estudiantes.map((e) => `<option value="${esc(e.alias)}">${esc(e.nombre)}</option>`).join("");

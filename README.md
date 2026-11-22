@@ -8,14 +8,52 @@ Es la versión en repositorio del notebook de Colab original (`notebooks/mediado
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env          # pon tu OPENAI_API_KEY (opcional, ver "Modo simulado")
 uvicorn mediador.web:app --reload
 ```
 
-Abre <http://127.0.0.1:8000>.
+Abre <http://127.0.0.1:8000> y haz clic en el indicador de modo (arriba a la derecha) para pegar la **API key de OpenAI**. Se guarda en el servidor (`salida/openai_api_key.txt`, fuera de git) y la usan todos los estudiantes; la página nunca la muestra completa. También puedes definirla como `OPENAI_API_KEY` en `.env` (ver `.env.example`); en ese caso tiene prioridad.
+
+## Acceso web
+
+> **Antes de abrirla a otros**, define una contraseña de profesor:
+> `export MEDIADOR_CLAVE_ADMIN=algo-secreto` (o en `.env`). Con ella se protegen la API key,
+> la edición y prueba del prompt y el registro (que contiene los comentarios de los estudiantes).
+> Los estudiantes solo usan la pestaña *Retroalimentar* y no la necesitan.
+
+**1. Misma red (sala de clases, wifi de la universidad)**
+```bash
+uvicorn mediador.web:app --host 0.0.0.0 --port 8000
+```
+Los estudiantes entran a `http://<IP-de-tu-computador>:8000` (la IP sale con `ipconfig` en Windows o `ip addr` / `ifconfig` en Linux/Mac). Puede que debas permitir el puerto 8000 en el firewall. Algunas redes institucionales aíslan a los equipos entre sí; en ese caso usa la opción 2.
+
+**2. Enlace público temporal desde tu computador (sin servidor)**
+Con el servidor corriendo, en otra terminal:
+```bash
+cloudflared tunnel --url http://localhost:8000     # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+# o bien:  ngrok http 8000
+```
+Te entrega una URL `https://….trycloudflare.com` para compartir. Funciona mientras tu computador y el comando sigan encendidos; la URL cambia cada vez.
+
+**3. Desde Google Colab** (como el notebook original)
+```python
+!git clone -b ccr-6246fe3b-pt52jl https://github.com/rilianx/Evaluador && cd Evaluador && pip install -q -r requirements.txt
+!wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared && chmod +x cloudflared
+import os, subprocess; os.chdir("Evaluador"); os.environ["MEDIADOR_CLAVE_ADMIN"] = "algo-secreto"
+subprocess.Popen(["uvicorn", "mediador.web:app", "--port", "8000"])
+!./cloudflared tunnel --url http://localhost:8000      # busca la URL https://….trycloudflare.com en la salida
+```
+Los archivos de `salida/` se pierden al cerrar la sesión de Colab: descarga el Excel desde la pestaña *Registro*.
+
+**4. Servidor permanente (Render, Railway, Fly.io, una VM…)**
+El repositorio incluye un `Dockerfile`:
+```bash
+docker build -t mediador .
+docker run -p 8000:8000 -e MEDIADOR_CLAVE_ADMIN=algo-secreto -v $(pwd)/salida:/app/salida mediador
+```
+En Render/Railway: crea un servicio web desde el repositorio (detecta el Dockerfile), define `MEDIADOR_CLAVE_ADMIN` (y opcionalmente `OPENAI_API_KEY`) en las variables de entorno y agrega un **disco persistente montado en `/app/salida`**; sin él, el registro y la key se borran en cada redespliegue. La plataforma entrega la URL https.
 
 ### Modo simulado
-Si no hay `OPENAI_API_KEY` (o con `MEDIADOR_MODO=simulado`) el mediador usa reglas heurísticas locales en lugar del modelo. Sirve para probar la interfaz y el flujo sin gastar API; **las evaluaciones no son reales** y el prompt no se usa. La interfaz lo indica arriba a la derecha.
+Si no hay API key (ni en la página ni en `OPENAI_API_KEY`) (o con `MEDIADOR_MODO=simulado`) el mediador usa reglas heurísticas locales en lugar del modelo. Sirve para probar la interfaz y el flujo sin gastar API; **las evaluaciones no son reales** y el prompt no se usa. La interfaz lo indica arriba a la derecha.
 
 ## La interfaz
 
@@ -81,10 +119,10 @@ Respecto del notebook, el prompt ahora incluye el **texto del trabajo** (`{traba
 
 ## Variables de entorno
 
-Ver `.env.example`. Principales: `OPENAI_API_KEY`, `MEDIADOR_MODELO` (por defecto `gpt-5.4-mini`), `MEDIADOR_MAX_ITERACIONES`, `MEDIADOR_MODO`. Para el bot: `TELEGRAM_BOT_TOKEN`, `PROFESOR_CHAT_ID`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`.
+Ver `.env.example`. Principales: `OPENAI_API_KEY` (o ingrésala en la página), `MEDIADOR_CLAVE_ADMIN`, `MEDIADOR_MODELO` (por defecto `gpt-5.4-mini`), `MEDIADOR_MAX_ITERACIONES`, `MEDIADOR_MODO`. Para el bot: `TELEGRAM_BOT_TOKEN`, `PROFESOR_CHAT_ID`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`.
 
 ## Limitaciones del prototipo
 
-- Sin autenticación: cualquiera que abra la página puede elegir ser cualquier estudiante y editar el prompt. Pensado para uso local o piloto controlado.
+- Los estudiantes no se autentican: cualquiera con el enlace puede elegir ser cualquier estudiante y usar la API key del servidor (con su costo). Las acciones de profesor sí se protegen con `MEDIADOR_CLAVE_ADMIN`. Para más que un piloto controlado haría falta login (p. ej. con la cuenta institucional).
 - En la web la "entrega" queda registrada pero no se notifica al destinatario (eso lo hace el bot de Telegram / correo).
 - Un solo proceso: las ejecuciones del grafo se serializan (SQLite).

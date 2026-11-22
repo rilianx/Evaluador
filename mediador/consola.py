@@ -21,7 +21,7 @@ def formatear(s: dict) -> str:
 
 def main():
     from .grafo import continuar_sesion, iniciar_sesion
-    print(f"Modo: {config.MODO} · modelo: {config.MODELO}\n")
+    print(f"Modo: {config.modo()} · modelo: {config.MODELO}\n")
     print(contenido.leer_trabajo()[:600] + "...\n")
     tid = f"consola-{uuid.uuid4().hex[:8]}"
     s = iniciar_sesion(tid, "prueba", config.AUTOR_TRABAJO, input("Pega tu retroalimentación:\n> "))

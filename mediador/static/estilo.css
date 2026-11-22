@@ -19,7 +19,7 @@ h1 { font-size: 17px; margin: 0; }
 nav { display: flex; gap: 4px; }
 .tab, .subtab { background: none; border: 1px solid transparent; color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; }
 .tab.activo, .subtab.activo { color: var(--texto); background: var(--bg); border-color: var(--borde); }
-.chip { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--borde); color: var(--muted); }
+.chip { cursor: pointer; font-family: inherit; margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--borde); color: var(--muted); }
 .chip.simulado { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
 
 .panel { display: none; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
@@ -80,3 +80,8 @@ table#tabla-registro { border-collapse: collapse; font-size: 13px; width: 100%; 
 #tabla-registro tr.bloq td { background: var(--mal-bg); }
 #tabla-registro tr.final td { background: var(--ok-bg); }
 .cargando { opacity: .6; pointer-events: none; }
+.chip.sinclave::after { content: " · 🔑 configurar"; }
+dialog { border: 1px solid var(--borde); border-radius: 10px; background: var(--panel); color: var(--texto); padding: 0; width: min(520px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.dlg { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.dlg input { width: 100%; }

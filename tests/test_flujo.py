@@ -51,3 +51,17 @@ def test_prompt_validacion_y_relleno():
     assert cli.put("/api/prompt", json={"texto": "sin marcador"}).status_code == 400
     r = cli.post("/api/prompt/vista_previa", json={"texto": original, "borrador": "MI BORRADOR"}).json()
     assert "MI BORRADOR" in r["prompt"] and "Péndulo simple" in r["prompt"]
+
+
+def test_clave_desde_interfaz_y_proteccion(monkeypatch):
+    from mediador import config
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    assert cli.put("/api/clave", json={"clave": "no-es-key"}).status_code == 400
+    r = cli.put("/api/clave", json={"clave": "sk-prueba-1234567890abcd"}).json()
+    assert r["configurada"] and r["origen"] == "interfaz" and "1234567890" not in r["mascara"]
+    assert "sk-prueba" not in cli.get("/api/clave").text
+    monkeypatch.setattr(config, "CLAVE_ADMIN", "secreto")
+    assert cli.delete("/api/clave").status_code == 401
+    assert cli.get("/api/registro").status_code == 401
+    assert cli.get("/api/registro?clave_profesor=secreto").status_code == 200
+    assert cli.delete("/api/clave", headers={"X-Clave-Profesor": "secreto"}).json()["configurada"] is False

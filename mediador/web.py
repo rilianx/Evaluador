@@ -2,9 +2,10 @@
 
 Ejecutar:  uvicorn mediador.web:app --reload   →  http://127.0.0.1:8000
 """
+import hmac
 import uuid
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -27,6 +28,14 @@ def _llamar(fn, *args):
         raise HTTPException(502, f"Error al llamar al modelo: {type(e).__name__}: {e}")
 
 
+def requiere_profesor(x_clave_profesor: str = Header(default=""), clave_profesor: str = Query(default="")):
+    """Si MEDIADOR_CLAVE_ADMIN está definida, exige esa contraseña
+    (cabecera X-Clave-Profesor, o ?clave_profesor= para la descarga del Excel)."""
+    dada = x_clave_profesor or clave_profesor
+    if config.CLAVE_ADMIN and not hmac.compare_digest(dada.encode(), config.CLAVE_ADMIN.encode()):
+        raise HTTPException(401, "Se requiere la contraseña del profesor.")
+
+
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html")
@@ -36,7 +45,7 @@ def index():
 def info():
     directorio = contenido.cargar_directorio()
     return {
-        "modo": config.MODO, "modelo": config.MODELO, "max_iteraciones": config.MAX_ITERACIONES,
+        "modo": config.modo(), "modelo": config.MODELO, "protegido": bool(config.CLAVE_ADMIN), "max_iteraciones": config.MAX_ITERACIONES,
         "estudiantes": [{"alias": a, "nombre": r["nombre"]} for a, r in directorio.items()],
         "rubrica": contenido.leer_rubrica(), "trabajo": contenido.leer_trabajo(),
         "autor_trabajo": config.AUTOR_TRABAJO,
@@ -102,7 +111,7 @@ def ver_prompt():
             "problemas": contenido.validar_prompt(texto)}
 
 
-@app.put("/api/prompt")
+@app.put("/api/prompt", dependencies=[Depends(requiere_profesor)])
 def guardar_prompt(p: Prompt):
     problemas = contenido.validar_prompt(p.texto)
     if any(x.startswith("Falta") for x in problemas):
@@ -111,7 +120,7 @@ def guardar_prompt(p: Prompt):
     return {"ok": True, "problemas": problemas}
 
 
-@app.post("/api/prompt/restaurar")
+@app.post("/api/prompt/restaurar", dependencies=[Depends(requiere_profesor)])
 def restaurar_prompt():
     return {"texto": contenido.restaurar_prompt()}
 
@@ -122,20 +131,57 @@ def vista_previa(p: PruebaPrompt):
     return {"prompt": construir_prompt(p.borrador, p.iteracion, config.MAX_ITERACIONES, plantilla=p.texto)}
 
 
-@app.post("/api/prompt/probar")
+@app.post("/api/prompt/probar", dependencies=[Depends(requiere_profesor)])
 def probar_prompt(p: PruebaPrompt):
     """Evalúa un borrador con el prompt del editor (sin guardarlo ni registrarlo en el Excel)."""
     ev = _llamar(lambda: evaluar_borrador(p.borrador, p.iteracion, config.MAX_ITERACIONES, plantilla=p.texto))
-    return ev.model_dump() | {"puntaje_global": ev.puntaje_global, "modo": config.MODO}
+    return ev.model_dump() | {"puntaje_global": ev.puntaje_global, "modo": config.modo()}
+
+
+# ---------- API key de OpenAI (ingresada desde la página) ----------
+class Clave(BaseModel):
+    clave: str
+
+
+def _estado_clave():
+    clave, origen = config.clave_openai()
+    return {"configurada": bool(clave), "origen": origen,
+            "mascara": f"{clave[:3]}…{clave[-4:]}" if len(clave) > 10 else ("•••" if clave else ""),
+            "modo": config.modo(), "protegido": bool(config.CLAVE_ADMIN)}
+
+
+@app.get("/api/clave")
+def ver_clave():
+    """Nunca devuelve la key completa: solo si está configurada y una máscara."""
+    return _estado_clave()
+
+
+@app.put("/api/clave", dependencies=[Depends(requiere_profesor)])
+def guardar_clave(c: Clave):
+    clave = c.clave.strip()
+    if not clave.startswith("sk-"):
+        raise HTTPException(400, "La API key de OpenAI debería empezar con «sk-».")
+    config.ARCHIVO_CLAVE.write_text(clave)
+    try:
+        config.ARCHIVO_CLAVE.chmod(0o600)
+    except OSError:
+        pass
+    return _estado_clave()
+
+
+@app.delete("/api/clave", dependencies=[Depends(requiere_profesor)])
+def borrar_clave():
+    config.ARCHIVO_CLAVE.unlink(missing_ok=True)
+    return _estado_clave()
 
 
 # ---------- registro ----------
-@app.get("/api/registro")
+@app.get("/api/registro", dependencies=[Depends(requiere_profesor)])
 def ver_registro():
     return {"filas": registro.leer_filas()}
 
 
-@app.get("/api/registro.xlsx")
+@app.get("/api/registro.xlsx", dependencies=[Depends(requiere_profesor)])
 def descargar_registro():
     if not config.ARCHIVO_XLSX.exists():
         raise HTTPException(404, "Aún no hay registros.")
