@@ -1,0 +1,12 @@
+langgraph>=1.0
+langgraph-checkpoint-sqlite>=3.0
+langchain-openai>=1.0
+fastapi>=0.115
+uvicorn>=0.30
+openpyxl>=3.1
+pydantic>=2.7
+# Opcionales
+python-telegram-bot>=21   # bot de Telegram
+pandas                    # análisis del registro
+pytest
+httpx                     # requerido por fastapi.testclient en los tests

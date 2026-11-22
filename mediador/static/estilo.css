@@ -1,0 +1,82 @@
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --texto: #1d2330; --muted: #667085; --borde: #dfe3ea;
+  --acento: #2f5496; --acento-t: #ffffff; --ok: #1f7a4d; --ok-bg: #e8f5ee;
+  --mal: #b42318; --mal-bg: #fdecea; --warn: #8a5a00; --warn-bg: #fff4e0;
+  --ins: #d9f2e3; --del: #fbe0e0; --punto: #c9d2e3;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151b; --panel: #1b1f27; --texto: #e5e8ee; --muted: #98a2b3; --borde: #2c323d;
+    --acento: #7aa2f7; --acento-t: #0f1218; --ok: #6fd3a0; --ok-bg: #16301f;
+    --mal: #ff8a80; --mal-bg: #3a1b1b; --warn: #f5c26b; --warn-bg: #352a14;
+    --ins: #1f4630; --del: #4a2222; --punto: #3a4252;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--texto); }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 2; }
+h1 { font-size: 17px; margin: 0; }
+nav { display: flex; gap: 4px; }
+.tab, .subtab { background: none; border: 1px solid transparent; color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; }
+.tab.activo, .subtab.activo { color: var(--texto); background: var(--bg); border-color: var(--borde); }
+.chip { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--borde); color: var(--muted); }
+.chip.simulado { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+
+.panel { display: none; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+.panel.activo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+#tab-registro.activo { grid-template-columns: 1fr; }
+@media (max-width: 900px) { .panel.activo { grid-template-columns: 1fr; padding: 12px 16px; } }
+.col { background: var(--panel); border: 1px solid var(--borde); border-radius: 10px; padding: 16px; min-width: 0; }
+.col-trabajo { max-height: calc(100vh - 100px); overflow: auto; position: sticky; top: 76px; align-self: start; }
+@media (max-width: 900px) { .col-trabajo { position: static; max-height: 50vh; } }
+.subtabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.sub { display: none; } .sub.activo { display: block; }
+.md table { border-collapse: collapse; font-size: 13px; width: 100%; }
+.md th, .md td { border: 1px solid var(--borde); padding: 6px; vertical-align: top; text-align: left; }
+.md h1 { font-size: 20px; } .md h2 { font-size: 16px; margin-top: 1.4em; }
+
+.fila-controles { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 12px; }
+label { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+select, textarea, input { font: inherit; color: var(--texto); background: var(--bg); border: 1px solid var(--borde); border-radius: 6px; padding: 6px 8px; }
+textarea { width: 100%; resize: vertical; }
+textarea:focus, select:focus, input:focus { outline: 2px solid var(--acento); outline-offset: -1px; }
+.mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 13px; }
+#prompt-texto { min-height: 60vh; }
+
+button, .boton { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--acento); background: var(--acento); color: var(--acento-t); cursor: pointer; text-decoration: none; display: inline-block; }
+button.sec, .boton.sec { background: transparent; color: var(--acento); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 8px; }
+.acciones.izq { justify-content: flex-start; margin: 0 0 12px; }
+.acciones .muted:first-child { margin-right: auto; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+
+.tarjeta { border: 1px solid var(--borde); border-radius: 8px; padding: 12px 14px; margin: 10px 0; background: var(--panel); }
+.tarjeta.exito { background: var(--ok-bg); border-color: transparent; white-space: pre-wrap; }
+.tarjeta.bloq { background: var(--mal-bg); border-color: transparent; }
+.tarjeta.listo { border-color: var(--ok); }
+.editor-cab, .eval-cab { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+.version { white-space: pre-wrap; font-size: 14px; }
+.version ins { background: var(--ins); text-decoration: none; border-radius: 2px; }
+.version del { background: var(--del); border-radius: 2px; }
+.barras { display: grid; grid-template-columns: max-content auto; gap: 2px 12px; font-size: 13px; margin: 4px 0 8px; }
+.puntos { display: flex; gap: 3px; align-items: center; }
+.puntos i { width: 18px; height: 8px; border-radius: 2px; background: var(--punto); }
+.puntos i.on { background: var(--acento); }
+.puntos.bajo i.on { background: var(--warn); }
+.eval-msg { margin: 6px 0; white-space: pre-wrap; }
+.eval-sug { margin: 6px 0; padding-left: 20px; }
+.aviso { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--mal-bg); color: var(--mal); font-size: 14px; }
+.aviso.info { background: var(--warn-bg); color: var(--warn); }
+details.ronda > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+.problemas { color: var(--warn); font-size: 13px; padding-left: 18px; margin: 6px 0; }
+.vista { white-space: pre-wrap; background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--borde); max-height: 60vh; overflow: auto; }
+
+.tabla-wrap { overflow: auto; max-height: calc(100vh - 170px); }
+table#tabla-registro { border-collapse: collapse; font-size: 13px; width: 100%; }
+#tabla-registro th { position: sticky; top: 0; background: var(--panel); text-align: left; border-bottom: 2px solid var(--borde); padding: 6px; white-space: nowrap; }
+#tabla-registro td { border-bottom: 1px solid var(--borde); padding: 6px; vertical-align: top; }
+#tabla-registro td.texto { min-width: 280px; max-width: 480px; white-space: pre-wrap; }
+#tabla-registro tr.bloq td { background: var(--mal-bg); }
+#tabla-registro tr.final td { background: var(--ok-bg); }
+.cargando { opacity: .6; pointer-events: none; }
