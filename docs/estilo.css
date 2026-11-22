@@ -28,8 +28,8 @@ nav { display: flex; gap: 4px; }
 #tab-registro.activo { grid-template-columns: 1fr; }
 @media (max-width: 900px) { .panel.activo { grid-template-columns: 1fr; padding: 12px 16px; } }
 .col { background: var(--panel); border: 1px solid var(--borde); border-radius: 10px; padding: 16px; min-width: 0; }
-.col-trabajo { max-height: calc(100vh - 100px); overflow: auto; position: sticky; top: 76px; align-self: start; }
-@media (max-width: 900px) { .col-trabajo { position: static; max-height: 50vh; } }
+.col-rubrica { max-height: calc(100vh - 100px); overflow: auto; position: sticky; top: 76px; align-self: start; }
+@media (max-width: 900px) { .col-rubrica { position: static; max-height: 50vh; } }
 .subtabs { display: flex; gap: 4px; margin-bottom: 8px; }
 .sub { display: none; } .sub.activo { display: block; }
 .md table { border-collapse: collapse; font-size: 13px; width: 100%; }
@@ -99,3 +99,22 @@ input[type=text], input[type=password], input[type=url] { width: 100%; }
 .tabla-ejemplos td.b2 { color: var(--warn); font-weight: 600; }
 .tabla-ejemplos tr.bloq td { background: var(--mal-bg); }
 .tabla-ejemplos tr { cursor: pointer; }
+
+/* --- disposición: Trabajo | Retroalimentar | Opciones generales --- */
+.header-der { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.header-der .chip { margin-left: 0; }
+#tab-trabajo.activo { grid-template-columns: minmax(0, 1fr); }
+.col-lectura { max-width: 880px; width: 100%; margin: 0 auto; }
+#tab-retro.activo { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+#tab-opciones.activo { display: block; }
+#tab-opciones .subtabs { margin-bottom: 12px; }
+.grid2.activo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.col-form { max-width: 680px; }
+.col-form .dlg { padding: 0; }
+button.enlace { background: none; border: none; color: var(--acento); padding: 0; text-decoration: underline; font-size: 13px; }
+@media (max-width: 900px) {
+  #tab-retro.activo, .grid2.activo { grid-template-columns: minmax(0, 1fr); }
+  .col-rubrica { order: 2; }
+}
+.md table { display: block; overflow-x: auto; }
+.col-rubrica .md { font-size: 14px; }

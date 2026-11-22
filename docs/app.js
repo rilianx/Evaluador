@@ -62,17 +62,25 @@ function tarjetaEvaluacion(ev, titulo) {
 }
 
 // ---------------- pestañas ----------------
-document.querySelectorAll(".tab").forEach((b) => b.onclick = () => {
+function irA(tab, sub = null) {
   document.querySelectorAll(".tab, .panel").forEach((x) => x.classList.remove("activo"));
-  b.classList.add("activo");
-  $(`#tab-${b.dataset.tab}`).classList.add("activo");
-  if (b.dataset.tab === "registro") pintarRegistro();
-});
-document.querySelectorAll(".subtab").forEach((b) => b.onclick = () => {
-  document.querySelectorAll(".subtab, .sub").forEach((x) => x.classList.remove("activo"));
-  b.classList.add("activo");
-  $(`#${b.dataset.sub}`).classList.add("activo");
-});
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add("activo");
+  $(`#tab-${tab}`).classList.add("activo");
+  if (sub) irASub(sub);
+  if (tab === "opciones" && $("#op-registro").classList.contains("activo")) pintarRegistro();
+  if (tab === "opciones" && $("#op-api").classList.contains("activo")) pintarConfig();
+  window.scrollTo({ top: 0 });
+}
+function irASub(sub) {
+  document.querySelectorAll("#tab-opciones .subtab, #tab-opciones .sub").forEach((x) => x.classList.remove("activo"));
+  document.querySelector(`.subtab[data-sub="${sub}"]`).classList.add("activo");
+  $(`#${sub}`).classList.add("activo");
+  if (sub === "op-registro") pintarRegistro();
+  if (sub === "op-api") pintarConfig();
+}
+document.querySelectorAll(".tab").forEach((b) => b.onclick = () => irA(b.dataset.tab));
+document.querySelectorAll(".subtab").forEach((b) => b.onclick = () => irASub(b.dataset.sub));
+document.querySelectorAll("[data-ir]").forEach((b) => b.onclick = () => irA(b.dataset.ir));
 
 // ---------------- retroalimentar ----------------
 function pintarSesion() {
@@ -326,16 +334,17 @@ function pintarModo() {
   chip.classList.toggle("simulado", sim);
   chip.classList.toggle("sinclave", sim);
 }
-$("#modo").onclick = () => {
+$("#modo").onclick = () => irA("opciones", "op-api");
+function pintarConfig() {
   const k = M.ajustes.key();
   $("#cfg-key").value = "";
-  $("#cfg-key").placeholder = k ? `configurada: ${k.slice(0, 3)}…${k.slice(-4)} (escribe otra para cambiarla)` : "sk-...";
+  $("#cfg-key").placeholder = k ? "escribe otra key para reemplazarla" : "sk-...";
+  $("#cfg-estado").textContent = k ? `✅ Key configurada en este navegador: ${k.slice(0, 3)}…${k.slice(-4)}`
+                                   : "⚠️ Sin API key: el mediador está en modo simulado.";
   $("#cfg-modelo").value = M.ajustes.modelo();
   $("#cfg-rondas").value = M.ajustes.maxIter();
   $("#btn-cfg-quitar").hidden = $("#btn-cfg-enlace").hidden = !k;
-  $("#cfg-msg").textContent = "";
-  $("#dlg-config").showModal();
-};
+}
 $("#btn-cfg-guardar").onclick = () => {
   const k = $("#cfg-key").value.trim();
   if (k && !k.startsWith("sk-")) { $("#cfg-msg").textContent = "La API key de OpenAI debería empezar con «sk-»."; return; }
@@ -344,10 +353,10 @@ $("#btn-cfg-guardar").onclick = () => {
   M.local.set("modelo", modelo && modelo !== M.CFG.modelo ? modelo : null);
   const r = parseInt($("#cfg-rondas").value, 10);
   M.local.set("max_iteraciones", r && r !== M.CFG.max_iteraciones ? r : null);
-  pintarModo();
-  $("#dlg-config").close();
+  pintarModo(); pintarConfig();
+  $("#cfg-msg").textContent = "Guardado.";
 };
-$("#btn-cfg-quitar").onclick = () => { M.local.set("openai_key", null); pintarModo(); $("#dlg-config").close(); };
+$("#btn-cfg-quitar").onclick = () => { M.local.set("openai_key", null); pintarModo(); pintarConfig(); $("#cfg-msg").textContent = "Key eliminada de este navegador."; };
 $("#btn-cfg-enlace").onclick = async () => {
   const url = `${location.origin}${location.pathname}#key=${encodeURIComponent(M.ajustes.key())}`;
   try { await navigator.clipboard.writeText(url); $("#cfg-msg").textContent = "Enlace copiado. Quien lo abra queda con la key configurada: compártelo solo por un canal privado."; }
@@ -362,6 +371,7 @@ function leerKeyDelEnlace() {
   if (k.startsWith("sk-")) M.local.set("openai_key", k);
   history.replaceState(null, "", location.pathname + location.search);  // la quita de la barra de direcciones
   pintarModo();
+  if ($("#op-api").classList.contains("activo")) pintarConfig();
 }
 window.addEventListener("hashchange", leerKeyDelEnlace);
 
@@ -381,7 +391,7 @@ window.addEventListener("hashchange", leerKeyDelEnlace);
   $("#rubrica").innerHTML = md(M.textos.rubrica);
   configurarEjemplos(M.textos.ejemplos);
   const s = M.sesion();
-  if (s && !s.terminado) $("#borrador").value = s.borrador;
+  if (s && !s.terminado) { $("#borrador").value = s.borrador; irA("retro"); }
   pintarSesion();
   cargarPromptEditor();
 })();

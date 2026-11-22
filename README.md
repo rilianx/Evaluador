@@ -88,13 +88,15 @@ Otros: `python -m mediador.consola` (prueba en terminal), `python -m mediador.bo
 ## Modo simulado
 Sin API key, ambas versiones usan reglas heurísticas locales en lugar del modelo. Sirve para probar la interfaz y el flujo sin gastar; **las evaluaciones no son reales** y el prompt no se usa. La interfaz lo indica arriba a la derecha.
 
-## La interfaz
+## La interfaz (GitHub Pages)
 
-| Pestaña | Para qué |
+| Sección | Para qué |
 |---|---|
-| **Retroalimentar** | A la izquierda, el trabajo del compañero y la rúbrica. A la derecha escribes tu comentario, pulsas *Revisar con la IA*, ves los puntajes y preguntas, editas el mismo texto y vuelves a revisar. Cada ronda muestra qué cambiaste respecto a la anterior. *Enviar* solo se habilita si la última versión fue revisada y no está bloqueada. |
-| **Prompt del mediador** | Ver y editar el prompt, **probar** un borrador con el texto del editor antes de guardarlo y ver el **prompt completo** que recibe el modelo. **«Probar todos los ejemplos»** evalúa todos los borradores de ejemplo y los muestra en una tabla junto a lo esperado: sirve para ver si un cambio al prompt mejora o empeora algún caso. |
-| **Registro** | Todas las rondas (bloqueos en rojo, versión enviada en verde) y descarga. |
+| **Trabajo del estudiante** | El informe que se va a retroalimentar. |
+| **Retroalimentar** | Escribes tu comentario (o eliges uno de los **ejemplos** del selector «📋 Cargar un ejemplo…» en la misma ventana), pulsas *Revisar con la IA*, ves los puntajes y preguntas, editas el mismo texto y vuelves a revisar. Cada ronda muestra qué cambiaste respecto a la anterior. *Enviar* solo se habilita si la última versión fue revisada y no está bloqueada. La **rúbrica** está al lado. |
+| **⚙️ Opciones generales** | **API key y modelo**; **Prompt del mediador**: ver, editar, probar un borrador, «Probar todos los ejemplos» (tabla de puntajes vs. lo esperado) y ver el prompt completo que recibe el modelo; **Registro**: todas las rondas y descarga CSV. |
+
+La versión de servidor Python (`mediador/static/`) conserva la disposición anterior en pestañas (Retroalimentar / Prompt / Registro).
 
 ## Reglas del flujo
 

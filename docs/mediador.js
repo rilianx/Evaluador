@@ -93,7 +93,7 @@ const Mediador = (() => {
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
       const msg = data.error?.message || `HTTP ${r.status}`;
-      throw new Error(r.status === 401 ? "La API key no es válida (401). Revísala en ⚙️ configuración." : "OpenAI: " + msg);
+      throw new Error(r.status === 401 ? "La API key no es válida (401). Revísala en ⚙️ Opciones generales." : "OpenAI: " + msg);
     }
     const m = data.choices?.[0]?.message;
     if (m?.refusal) throw new Error("El modelo se negó a evaluar: " + m.refusal);

@@ -12,24 +12,27 @@
 <header>
   <h1>Mediador de retroalimentación entre pares</h1>
   <nav>
-    <button class="tab activo" data-tab="retro">Retroalimentar</button>
-    <button class="tab" data-tab="prompt">Prompt del mediador</button>
-    <button class="tab" data-tab="registro">Registro</button>
+    <button class="tab activo" data-tab="trabajo">Trabajo del estudiante</button>
+    <button class="tab" data-tab="retro">Retroalimentar</button>
   </nav>
-  <button id="modo" class="chip" title="Configurar API key y modelo"></button>
+  <div class="header-der">
+    <button id="modo" class="chip" title="Configurar API key y modelo"></button>
+    <button class="tab" data-tab="opciones" title="API key, prompt del mediador y registro">⚙️ Opciones generales</button>
+  </div>
 </header>
 
-<!-- ================= RETROALIMENTAR ================= -->
-<main id="tab-retro" class="panel activo">
-  <section class="col col-trabajo">
-    <div class="subtabs">
-      <button class="subtab activo" data-sub="trabajo">Trabajo del compañero</button>
-      <button class="subtab" data-sub="rubrica">Enunciado y rúbrica</button>
+<!-- ================= TRABAJO DEL ESTUDIANTE ================= -->
+<main id="tab-trabajo" class="panel activo">
+  <section class="col col-lectura">
+    <article id="trabajo" class="md"></article>
+    <div class="acciones">
+      <button data-ir="retro">Retroalimentar este trabajo →</button>
     </div>
-    <article id="trabajo" class="md sub activo"></article>
-    <article id="rubrica" class="md sub"></article>
   </section>
+</main>
 
+<!-- ================= RETROALIMENTAR ================= -->
+<main id="tab-retro" class="panel">
   <section class="col col-retro">
     <div class="fila-controles">
       <label style="flex:1">Tu nombre
@@ -63,10 +66,47 @@
 
     <div id="entregado" class="tarjeta exito" hidden></div>
   </section>
+
+  <aside class="col col-rubrica">
+    <div class="editor-cab">
+      <strong>Enunciado y rúbrica</strong>
+      <button class="enlace" data-ir="trabajo">Ver el trabajo</button>
+    </div>
+    <article id="rubrica" class="md"></article>
+  </aside>
 </main>
 
-<!-- ================= PROMPT ================= -->
-<main id="tab-prompt" class="panel">
+<!-- ================= OPCIONES GENERALES ================= -->
+<main id="tab-opciones" class="panel">
+  <div class="subtabs">
+    <button class="subtab activo" data-sub="op-api">API key y modelo</button>
+    <button class="subtab" data-sub="op-prompt">Prompt del mediador</button>
+    <button class="subtab" data-sub="op-registro">Registro</button>
+  </div>
+
+  <section id="op-api" class="sub activo col col-form">
+    <form id="form-config" class="dlg" onsubmit="return false">
+      <label>API key de OpenAI
+        <input id="cfg-key" type="password" autocomplete="off" placeholder="sk-..." spellcheck="false">
+      </label>
+      <p id="cfg-estado" class="small"></p>
+      <p class="nota">La key se guarda solo en este navegador y se envía directo a OpenAI; no pasa por GitHub.
+        Aun así, quien use este computador podría verla: usa una key de proyecto con <b>límite de gasto</b> y revócala al terminar el piloto.
+        Sin key, el mediador funciona en <b>modo simulado</b> (reglas simples, sin IA).</p>
+      <div class="fila2">
+        <label>Modelo <input id="cfg-modelo" type="text"></label>
+        <label>Rondas sugeridas <input id="cfg-rondas" type="number" min="1"></label>
+      </div>
+      <div class="acciones">
+        <button type="button" id="btn-cfg-enlace" class="sec" title="Copia un enlace que configura la key al abrirlo">Copiar enlace con key</button>
+        <button type="button" id="btn-cfg-quitar" class="sec">Quitar key</button>
+        <button type="button" id="btn-cfg-guardar">Guardar</button>
+      </div>
+      <p id="cfg-msg" class="muted small"></p>
+    </form>
+  </section>
+
+  <div id="op-prompt" class="sub grid2">
   <section class="col col-prompt">
     <div class="editor-cab">
       <strong>Prompt del mediador</strong>
@@ -102,11 +142,9 @@
     <div id="prueba-resultado"></div>
     <pre id="prueba-vista" class="mono vista" hidden></pre>
   </section>
-</main>
+  </div>
 
-<!-- ================= REGISTRO ================= -->
-<main id="tab-registro" class="panel">
-  <section class="col col-ancha">
+  <section id="op-registro" class="sub col">
     <div class="acciones izq">
       <strong>Iteraciones registradas en este navegador</strong>
       <button id="btn-reg-descargar" class="sec">Descargar CSV (Excel)</button>
@@ -116,29 +154,6 @@
     <div class="tabla-wrap"><table id="tabla-registro"></table></div>
   </section>
 </main>
-
-<dialog id="dlg-config">
-  <form method="dialog" class="dlg">
-    <strong>Configuración</strong>
-    <label>API key de OpenAI
-      <input id="cfg-key" type="password" autocomplete="off" placeholder="sk-..." spellcheck="false">
-    </label>
-    <p class="nota">La key se guarda solo en este navegador y se envía directo a OpenAI; no pasa por GitHub.
-      Aun así, quien use este computador podría verla: usa una key de proyecto con <b>límite de gasto</b> y revócala al terminar el piloto.
-      Sin key, el mediador funciona en <b>modo simulado</b> (reglas simples, sin IA).</p>
-    <div class="fila2">
-      <label>Modelo <input id="cfg-modelo" type="text"></label>
-      <label>Rondas sugeridas <input id="cfg-rondas" type="number" min="1"></label>
-    </div>
-    <div class="acciones">
-      <button type="button" id="btn-cfg-enlace" class="sec" title="Copia un enlace que configura la key al abrirlo">Copiar enlace con key</button>
-      <button type="button" id="btn-cfg-quitar" class="sec">Quitar key</button>
-      <button type="submit" class="sec">Cerrar</button>
-      <button type="button" id="btn-cfg-guardar">Guardar</button>
-    </div>
-    <p id="cfg-msg" class="muted small"></p>
-  </form>
-</dialog>
 
 <template id="tpl-eval">
   <div class="tarjeta eval">
